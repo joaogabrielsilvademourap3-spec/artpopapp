@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Frente de Caixa</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Sistema de Frente de Caixa</h1>
+      <p>Registre vendas de forma rápida e organizada.</p>
+    </header>
+
+    <main class="grid">
+      <section class="panel">
+        <h2>Produtos</h2>
+        <form id="product-form" class="stack">
+          <label>
+            Nome do produto
+            <input id="product-name" type="text" required />
+          </label>
+
+          <label>
+            Preço unitário (R$)
+            <input id="product-price" type="number" min="0" step="0.01" required />
+          </label>
+
+          <button type="submit">Adicionar produto</button>
+        </form>
+
+        <ul id="product-list" class="list"></ul>
+      </section>
+
+      <section class="panel">
+        <h2>Venda atual</h2>
+        <form id="sale-form" class="stack">
+          <label>
+            Produto
+            <select id="sale-product" required></select>
+          </label>
+
+          <label>
+            Quantidade
+            <input id="sale-qty" type="number" min="1" value="1" required />
+          </label>
+
+          <button type="submit">Adicionar à venda</button>
+        </form>
+
+        <ul id="cart-list" class="list"></ul>
+
+        <div class="totals">
+          <p>Total: <strong id="total-value">R$ 0,00</strong></p>
+          <label>
+            Valor recebido (R$)
+            <input id="cash-received" type="number" min="0" step="0.01" />
+          </label>
+          <p>Troco: <strong id="change-value">R$ 0,00</strong></p>
+        </div>
+
+        <div class="actions">
+          <button id="finish-sale" type="button">Finalizar venda</button>
+          <button id="clear-sale" type="button" class="secondary">Cancelar venda</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Últimas vendas</h2>
+        <ul id="history-list" class="list"></ul>
+      </section>
+    </main>
+
+    <template id="receipt-template">
+      <article class="receipt">
+        <h3>Comprovante</h3>
+        <ul></ul>
+        <p class="line"><span>Total</span><strong></strong></p>
+        <p class="line"><span>Recebido</span><strong></strong></p>
+        <p class="line"><span>Troco</span><strong></strong></p>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
