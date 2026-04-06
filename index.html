@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#090909" />
+  <title>Club Elite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:FILL@1" rel="stylesheet" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app-shell" class="app-shell">
+    <div id="loading-screen" class="loading-screen hidden"><div class="spinner"></div><p>Carregando Club Elite...</p></div>
+
+    <section id="splash-screen" class="screen centered splash">
+      <div class="logo-wrap"><div class="logo-mark">♠</div><h1>Club Elite</h1><p>Exclusive Poker Experience</p></div>
+      <button class="btn btn-primary" data-action="go-auth">Entrar</button>
+    </section>
+
+    <section id="auth-screen" class="screen centered hidden">
+      <div class="auth-tabs">
+        <button class="tab-btn active" data-auth-tab="login">Login</button>
+        <button class="tab-btn" data-auth-tab="signup">Cadastro</button>
+      </div>
+      <form id="login-form" class="auth-form">
+        <label>E-mail<input type="email" name="email" required placeholder="voce@email.com" /></label>
+        <label>Senha<input type="password" name="password" minlength="6" required placeholder="******" /></label>
+        <a href="#" class="text-link">Esqueci minha senha</a>
+        <button class="btn btn-primary" type="submit">Acessar</button>
+      </form>
+      <form id="signup-form" class="auth-form hidden">
+        <label>Nome<input type="text" name="name" required /></label>
+        <label>E-mail<input type="email" name="email" required /></label>
+        <label>Telefone<input type="tel" name="phone" required /></label>
+        <label>Senha<input type="password" name="password" minlength="6" required /></label>
+        <button class="btn btn-primary" type="submit">Criar conta</button>
+      </form>
+    </section>
+
+    <header class="top-bar hidden" id="top-bar">
+      <h2 id="screen-title">Home</h2>
+      <button class="icon-btn" data-action="open-notifications"><span class="material-symbols-rounded">notifications</span><span id="notification-badge" class="badge">0</span></button>
+    </header>
+
+    <main id="main-app" class="main-app hidden">
+      <section class="view active" data-view="home"></section>
+      <section class="view" data-view="agenda"></section>
+      <section class="view" data-view="tournaments"></section>
+      <section class="view" data-view="ranking"></section>
+      <section class="view" data-view="profile"></section>
+      <section class="view" data-view="notifications"></section>
+      <section class="view" data-view="history"></section>
+      <section class="view" data-view="club"></section>
+      <section class="view" data-view="admin"></section>
+      <section class="view" data-view="scanner"></section>
+    </main>
+
+    <nav id="bottom-nav" class="bottom-nav hidden">
+      <button class="nav-btn active" data-nav="home"><span class="material-symbols-rounded">home</span><small>Home</small></button>
+      <button class="nav-btn" data-nav="agenda"><span class="material-symbols-rounded">calendar_month</span><small>Agenda</small></button>
+      <button class="nav-btn" data-nav="tournaments"><span class="material-symbols-rounded">casino</span><small>Torneios</small></button>
+      <button class="nav-btn" data-nav="ranking"><span class="material-symbols-rounded">military_tech</span><small>Ranking</small></button>
+      <button class="nav-btn" data-nav="profile"><span class="material-symbols-rounded">person</span><small>Perfil</small></button>
+    </nav>
+  </div>
+
+  <div id="confirm-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Confirmar inscrição</h3>
+      <p id="modal-text"></p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" data-action="close-modal">Cancelar</button>
+        <button class="btn btn-primary" id="modal-confirm-btn">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-stack" class="toast-stack"></div>
+  <script src="script.js" defer></script>
+</body>
+</html>

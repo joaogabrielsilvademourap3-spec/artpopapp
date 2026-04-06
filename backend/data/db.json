@@ -1,0 +1,68 @@
+{
+  "users": [
+    {
+      "id": "u_demo_1",
+      "name": "Rafael Costa",
+      "email": "rafael@elite.com",
+      "phone": "11988887777",
+      "password": "123456",
+      "nickname": "Rafa Shark",
+      "role": "player"
+    },
+    {
+      "id": "u_admin_1",
+      "name": "Admin Club",
+      "email": "admin@elite.com",
+      "phone": "11999990000",
+      "password": "admin123",
+      "nickname": "Manager",
+      "role": "admin"
+    }
+  ],
+  "tournaments": [
+    {
+      "id": "t1",
+      "name": "Elite Sunday Major",
+      "date": "2026-04-12",
+      "time": "17:00",
+      "type": "Torneio",
+      "buyIn": 1500,
+      "blinds": "20 min",
+      "prize": 80000,
+      "slots": 70,
+      "taken": 22,
+      "structure": "Stack 30.000 / níveis 20 min",
+      "status": "disponível"
+    },
+    {
+      "id": "t2",
+      "name": "VIP Invitational",
+      "date": "2026-04-18",
+      "time": "20:30",
+      "type": "Evento especial",
+      "buyIn": 3000,
+      "blinds": "25 min",
+      "prize": 140000,
+      "slots": 45,
+      "taken": 45,
+      "structure": "Freezeout bounty",
+      "status": "lotado"
+    }
+  ],
+  "events": [
+    {
+      "id": "e1",
+      "name": "Cash Game Midnight",
+      "date": "2026-04-09",
+      "time": "22:00",
+      "type": "Cash Game",
+      "buyIn": 500,
+      "blinds": "5/10",
+      "slots": 9,
+      "taken": 6,
+      "status": "disponível"
+    }
+  ],
+  "registrations": [],
+  "checkins": []
+}
