@@ -1,1 +1,17 @@
+# Sistema de Frente de Caixa
 
+Aplicação web simples para operação de caixa:
+
+- Cadastro rápido de produtos.
+- Montagem da venda com quantidade por item.
+- Cálculo de total, valor recebido e troco.
+- Histórico das últimas vendas.
+- Geração de comprovante da última venda fechada.
+
+## Executar localmente
+
+```bash
+python3 -m http.server 8000
+```
+
+Depois abra `http://localhost:8000` no navegador.
