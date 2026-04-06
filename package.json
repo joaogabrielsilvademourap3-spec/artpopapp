@@ -1,16 +1,10 @@
 {
   "name": "club-elite-fullstack",
   "version": "1.0.0",
-  "description": "Club Elite fullstack app",
+  "description": "Club Elite fullstack app sem dependencias externas",
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
     "dev": "node backend/server.js"
-  },
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.21.2",
-    "qrcode": "^1.5.4",
-    "uuid": "^11.1.0"
   }
 }
