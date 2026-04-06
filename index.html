@@ -14,17 +14,10 @@
 </head>
 <body>
   <div id="app-shell" class="app-shell">
-    <div id="loading-screen" class="loading-screen hidden">
-      <div class="spinner"></div>
-      <p>Carregando experiência premium...</p>
-    </div>
+    <div id="loading-screen" class="loading-screen hidden"><div class="spinner"></div><p>Carregando Club Elite...</p></div>
 
-    <section id="splash-screen" class="screen active centered splash">
-      <div class="logo-wrap">
-        <div class="logo-mark">♠</div>
-        <h1>Club Elite</h1>
-        <p>Exclusive Poker Experience</p>
-      </div>
+    <section id="splash-screen" class="screen centered splash">
+      <div class="logo-wrap"><div class="logo-mark">♠</div><h1>Club Elite</h1><p>Exclusive Poker Experience</p></div>
       <button class="btn btn-primary" data-action="go-auth">Entrar</button>
     </section>
 
@@ -50,10 +43,7 @@
 
     <header class="top-bar hidden" id="top-bar">
       <h2 id="screen-title">Home</h2>
-      <button class="icon-btn" data-action="open-notifications" aria-label="Notificações">
-        <span class="material-symbols-rounded">notifications</span>
-        <span class="badge" id="notification-badge">0</span>
-      </button>
+      <button class="icon-btn" data-action="open-notifications"><span class="material-symbols-rounded">notifications</span><span id="notification-badge" class="badge">0</span></button>
     </header>
 
     <main id="main-app" class="main-app hidden">
@@ -62,24 +52,23 @@
       <section class="view" data-view="tournaments"></section>
       <section class="view" data-view="ranking"></section>
       <section class="view" data-view="profile"></section>
-      <section class="view" data-view="waitlist"></section>
-      <section class="view" data-view="club"></section>
-      <section class="view" data-view="promotions"></section>
-      <section class="view" data-view="history"></section>
       <section class="view" data-view="notifications"></section>
-      <section class="view" data-view="tournament-detail"></section>
+      <section class="view" data-view="history"></section>
+      <section class="view" data-view="club"></section>
+      <section class="view" data-view="admin"></section>
+      <section class="view" data-view="scanner"></section>
     </main>
 
     <nav id="bottom-nav" class="bottom-nav hidden">
       <button class="nav-btn active" data-nav="home"><span class="material-symbols-rounded">home</span><small>Home</small></button>
       <button class="nav-btn" data-nav="agenda"><span class="material-symbols-rounded">calendar_month</span><small>Agenda</small></button>
-      <button class="nav-btn" data-nav="tournaments"><span class="material-symbols-rounded">sports_esports</span><small>Torneios</small></button>
+      <button class="nav-btn" data-nav="tournaments"><span class="material-symbols-rounded">casino</span><small>Torneios</small></button>
       <button class="nav-btn" data-nav="ranking"><span class="material-symbols-rounded">military_tech</span><small>Ranking</small></button>
       <button class="nav-btn" data-nav="profile"><span class="material-symbols-rounded">person</span><small>Perfil</small></button>
     </nav>
   </div>
 
-  <div class="modal hidden" id="confirm-modal">
+  <div id="confirm-modal" class="modal hidden">
     <div class="modal-content">
       <h3>Confirmar inscrição</h3>
       <p id="modal-text"></p>

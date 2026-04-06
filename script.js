@@ -1,370 +1,409 @@
-const STORAGE_KEYS = {
-  user: 'clubElite_user',
-  registrations: 'clubElite_registrations',
-  waitlist: 'clubElite_waitlist',
-  prefs: 'clubElite_preferences',
-  notificationsRead: 'clubElite_notifications_read'
-};
-
-const mock = {
-  user: { name: 'Rafael Costa', email: 'rafael@elite.com', phone: '(11) 98888-7777', nickname: 'Rafa Shark', avatar: 'RC', preferences: ['Texas Hold\'em', 'PLO', 'High Roller'] },
-  events: [
-    { id: 1, name: 'Cash Game Midnight', date: '2026-03-28', time: '22:00', type: 'Cash Game', buyIn: 'R$ 500', blinds: '5/10', slots: 9, taken: 6, status: 'disponível' },
-    { id: 2, name: 'Elite Sunday Major', date: '2026-03-29', time: '17:00', type: 'Torneio', buyIn: 'R$ 1.500', blinds: '20 min', prize: 'R$ 80.000', slots: 70, taken: 69, status: 'últimas vagas', structure: 'Stack inicial 30.000 / níveis de 20 min' },
-    { id: 3, name: 'VIP Invitational', date: '2026-04-01', time: '20:30', type: 'Evento especial', buyIn: 'R$ 3.000', blinds: '25 min', prize: 'R$ 140.000', slots: 45, taken: 45, status: 'lotado', structure: 'Freezeout com bounty progressivo' },
-    { id: 4, name: 'Satellite High Stakes', date: '2026-04-02', time: '19:00', type: 'Satélite', buyIn: 'R$ 250', blinds: '15 min', prize: 'Pacote High Roller', slots: 36, taken: 11, status: 'disponível', structure: '5 vagas garantidas para High Roller' },
-    { id: 5, name: 'Legends Deepstack', date: '2026-04-03', time: '18:00', type: 'Torneio', buyIn: 'R$ 900', blinds: '20 min', prize: 'R$ 60.000', slots: 90, taken: 90, status: 'lotado', structure: 'Deepstack 50.000 fichas' }
-  ],
-  leaderboard: [
-    { name: 'André Blitz', points: 1920, wins: 12, freq: '96%' },
-    { name: 'Carla Rivers', points: 1808, wins: 10, freq: '93%' },
-    { name: 'Leo Titan', points: 1704, wins: 9, freq: '88%' },
-    { name: 'Maya Queen', points: 1540, wins: 8, freq: '84%' },
-    { name: 'Davi Stone', points: 1492, wins: 7, freq: '83%' }
-  ],
-  notifications: [
-    { id: 'n1', type: 'nova rodada', text: 'Mesa Cash 10/20 liberada para hoje às 21:00.', time: 'há 12 min' },
-    { id: 'n2', type: 'inscrição', text: 'Sua inscrição no Elite Sunday Major foi confirmada.', time: 'há 1h' },
-    { id: 'n3', type: 'promoção', text: 'Bônus de entrada 15% no primeiro buy-in do fim de semana.', time: 'há 3h' },
-    { id: 'n4', type: 'evento', text: 'Evento especial com jogador convidado em 01/04.', time: 'ontem' }
-  ],
-  promotions: [
-    { title: 'Bônus New Seat', desc: 'Ganhe R$ 100 em fichas no primeiro check-in do mês.' },
-    { title: 'VIP Wednesday', desc: 'Open food premium + blind level estendido.' },
-    { title: 'Programa Black Card', desc: 'Acumule pontos e troque por entradas e gifts exclusivos.' }
-  ]
-};
-
-const state = { view: 'home', authTab: 'login', scheduleFilter: 'Todos', leaderboardFilter: 'Geral', selectedTournamentId: null };
+const API = '/api';
+const STORAGE = { user: 'clubElite_user', notificationsRead: 'clubElite_notifications_read' };
+const state = { view: 'home', authTab: 'login', tournaments: [], events: [], user: null, notifications: [], selectedTournament: null, scanStream: null };
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
 
-function storageGet(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
-function storageSet(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+const leaderboard = [
+  { name: 'André Blitz', points: 1920, wins: 12, freq: '96%' },
+  { name: 'Carla Rivers', points: 1808, wins: 10, freq: '93%' },
+  { name: 'Leo Titan', points: 1704, wins: 9, freq: '88%' },
+  { name: 'Maya Queen', points: 1540, wins: 8, freq: '84%' }
+];
 
-function initData() {
-  if (!storageGet(STORAGE_KEYS.registrations)) storageSet(STORAGE_KEYS.registrations, []);
-  if (!storageGet(STORAGE_KEYS.waitlist)) storageSet(STORAGE_KEYS.waitlist, []);
-  if (!storageGet(STORAGE_KEYS.notificationsRead)) storageSet(STORAGE_KEYS.notificationsRead, []);
-}
-
-function isLogged() { return !!storageGet(STORAGE_KEYS.user); }
-function getUser() { return storageGet(STORAGE_KEYS.user, mock.user); }
-
-function statusClass(status) {
-  if (status === 'lotado') return 'full';
-  if (status === 'últimas vagas') return 'last';
-  if (status === 'cancelado') return 'cancelled';
-  return 'available';
+async function api(path, options = {}) {
+  const res = await fetch(`${API}${path}`, { headers: { 'Content-Type': 'application/json' }, ...options });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Erro inesperado.' }));
+    throw new Error(err.error || 'Erro na API');
+  }
+  return res.json();
 }
 
 function showToast(msg) {
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.textContent = msg;
-  $('#toast-stack').appendChild(toast);
-  setTimeout(() => toast.remove(), 2800);
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  $('#toast-stack').appendChild(t);
+  setTimeout(() => t.remove(), 2800);
 }
 
-function openView(view, title = null) {
+function saveUser(user) { localStorage.setItem(STORAGE.user, JSON.stringify(user)); }
+function getUser() { return JSON.parse(localStorage.getItem(STORAGE.user) || 'null'); }
+function unreadCount() {
+  const read = JSON.parse(localStorage.getItem(STORAGE.notificationsRead) || '[]');
+  return state.notifications.filter((n) => !read.includes(n.id)).length;
+}
+
+function openView(view) {
   state.view = view;
-  $$('.view').forEach(v => v.classList.toggle('active', v.dataset.view === view));
-  $$('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.nav === view));
-  $('#screen-title').textContent = title || ({ home: 'Home', agenda: 'Agenda', tournaments: 'Torneios', ranking: 'Ranking', profile: 'Perfil', waitlist: 'Lista de Espera', notifications: 'Notificações', club: 'Clube', promotions: 'Benefícios', history: 'Histórico', 'tournament-detail': 'Detalhes' }[view] || 'Club Elite');
+  $$('.view').forEach((v) => v.classList.toggle('active', v.dataset.view === view));
+  $$('.nav-btn').forEach((b) => b.classList.toggle('active', b.dataset.nav === view));
+  $('#screen-title').textContent = ({ home: 'Home', agenda: 'Agenda', tournaments: 'Torneios', ranking: 'Ranking', profile: 'Perfil', notifications: 'Notificações', history: 'Histórico', club: 'Clube', admin: 'Admin', scanner: 'Scanner QR' }[view] || 'Club Elite');
   renderCurrentView();
 }
 
-function unreadCount() {
-  const read = storageGet(STORAGE_KEYS.notificationsRead, []);
-  return mock.notifications.filter(n => !read.includes(n.id)).length;
+function statusClass(s) {
+  if (s === 'lotado') return 'full';
+  if (s === 'últimas vagas') return 'last';
+  if (s === 'cancelado') return 'cancelled';
+  return 'available';
 }
 
-function renderCurrentView() {
-  const view = state.view;
-  if (view === 'home') renderHome();
-  else if (view === 'agenda') renderAgenda();
-  else if (view === 'tournaments') renderTournaments();
-  else if (view === 'ranking') renderRanking();
-  else if (view === 'profile') renderProfile();
-  else if (view === 'waitlist') renderWaitlist();
-  else if (view === 'notifications') renderNotifications();
-  else if (view === 'club') renderClub();
-  else if (view === 'promotions') renderPromotions();
-  else if (view === 'history') renderHistory();
-  else if (view === 'tournament-detail') renderTournamentDetail();
-  $('#notification-badge').textContent = unreadCount();
+async function fetchCoreData() {
+  const [tournaments, events] = await Promise.all([api('/tournaments'), api('/events')]);
+  state.tournaments = tournaments;
+  state.events = events;
+  state.notifications = [
+    { id: 'n1', text: 'Nova rodada cash 10/20 aberta às 21:00.', type: 'Rodada' },
+    { id: 'n2', text: 'Inscrições do Sunday Major quase encerradas.', type: 'Inscrição' },
+    { id: 'n3', text: 'Promoção VIP Wednesday ativa hoje.', type: 'Promoção' }
+  ];
 }
 
 function renderHome() {
-  const next = mock.events.find(e => e.type === 'Torneio');
-  const cash = mock.events.filter(e => e.type === 'Cash Game').length;
-  const openSlots = mock.events.reduce((acc, e) => acc + Math.max(e.slots - e.taken, 0), 0);
+  const next = state.tournaments[0];
+  const cash = state.events.filter((e) => e.type === 'Cash Game').length;
+  const slots = state.tournaments.reduce((a, b) => a + Math.max(b.slots - b.taken, 0), 0);
   $('[data-view="home"]').innerHTML = `
-    <div class="banner">
-      <p class="muted">Bem-vindo ao Club Elite</p>
-      <h3>Experiência premium de poker com agenda inteligente</h3>
-      <p>Próximo destaque: <b>${next.name}</b> • ${next.date} às ${next.time}</p>
-    </div>
+    <div class="banner"><p class="muted">Bem-vindo, ${state.user.name}</p><h3>Ambiente premium para jogos exclusivos</h3><p>Próximo torneio: <b>${next?.name || '-'}</b></p></div>
     <div class="kpis">
-      <article class="kpi"><small>Próximo torneio</small><b>${next.time}</b><small>${next.date}</small></article>
-      <article class="kpi"><small>Cash games</small><b>${cash}</b><small>essa semana</small></article>
-      <article class="kpi"><small>Vagas livres</small><b>${openSlots}</b><small>geral</small></article>
-      <article class="kpi"><small>Avisos</small><b>${unreadCount()}</b><small>não lidos</small></article>
+      <article class="kpi"><small>Próximo torneio</small><b>${next?.time || '--:--'}</b><small>${next?.date || '-'}</small></article>
+      <article class="kpi"><small>Cash games</small><b>${cash}</b><small>ativos</small></article>
+      <article class="kpi"><small>Vagas livres</small><b>${slots}</b><small>torneios</small></article>
+      <article class="kpi"><small>Notificações</small><b>${unreadCount()}</b><small>não lidas</small></article>
     </div>
     <div class="quick-grid">
-      <button class="quick-btn" data-quick="agenda">Ver Agenda</button>
       <button class="quick-btn" data-quick="tournaments">Inscrever-se</button>
-      <button class="quick-btn" data-quick="waitlist">Minha Waitlist</button>
-      <button class="quick-btn" data-quick="club">Regras da Casa</button>
-    </div>
-  `;
-  $$('[data-quick]').forEach(btn => btn.onclick = () => openView(btn.dataset.quick));
+      <button class="quick-btn" data-quick="history">Meus check-ins</button>
+      <button class="quick-btn" data-quick="club">Regras da casa</button>
+      ${state.user.role === 'admin' ? '<button class="quick-btn" data-quick="admin">Painel Admin</button>' : '<button class="quick-btn" data-quick="agenda">Agenda</button>'}
+    </div>`;
+  $$('[data-quick]').forEach((b) => (b.onclick = () => openView(b.dataset.quick)));
 }
 
 function renderAgenda() {
-  const filtered = state.scheduleFilter === 'Todos' ? mock.events : mock.events.filter(e => e.type === state.scheduleFilter);
-  const cards = filtered.map(e => `
-    <article class="card">
-      <div class="row"><h3>${e.name}</h3><span class="status ${statusClass(e.status)}">${e.status}</span></div>
-      <p class="muted">${e.date} • ${e.time} • ${e.type}</p>
-      <div class="row"><small>Buy-in: ${e.buyIn}</small><small>Blinds: ${e.blinds}</small></div>
-      <div class="row"><small>Vagas: ${e.slots - e.taken}/${e.slots}</small><button class="btn btn-secondary" data-open-tid="${e.id}">detalhes</button></div>
-    </article>`).join('');
-  $('[data-view="agenda"]').innerHTML = `
-    <div class="filters">${['Todos', 'Cash Game', 'Torneio', 'Evento especial', 'Satélite'].map(t => `<button class="pill ${state.scheduleFilter === t ? 'active' : ''}" data-filter="${t}">${t}</button>`).join('')}</div>
-    ${cards || '<p class="muted">Nenhum evento encontrado.</p>'}
-  `;
-  $$('[data-filter]').forEach(b => b.onclick = () => { state.scheduleFilter = b.dataset.filter; renderAgenda(); });
-  $$('[data-open-tid]').forEach(b => b.onclick = () => { state.selectedTournamentId = Number(b.dataset.openTid); openView('tournament-detail'); });
+  const cards = [...state.events, ...state.tournaments]
+    .sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))
+    .map((e) => `<article class="card"><div class="row"><h3>${e.name}</h3><span class="status ${statusClass(e.status)}">${e.status}</span></div><p class="muted">${e.date} • ${e.time} • ${e.type}</p><small>Buy-in: R$ ${e.buyIn} • Blinds: ${e.blinds || '-'}</small></article>`)
+    .join('');
+  $('[data-view="agenda"]').innerHTML = cards || '<p class="muted">Sem eventos.</p>';
 }
 
 function renderTournaments() {
-  const tournaments = mock.events.filter(e => ['Torneio', 'Satélite', 'Evento especial'].includes(e.type));
   $('[data-view="tournaments"]').innerHTML = `
-    <label>Buscar torneio<input class="input" id="search-tour" placeholder="Digite nome ou tipo" /></label>
-    <div id="tour-list">${skeletons(3)}</div>
-  `;
-  setTimeout(() => updateTournamentList(tournaments, ''), 500);
-  $('#search-tour').oninput = (ev) => updateTournamentList(tournaments, ev.target.value.toLowerCase());
-}
+    <label>Buscar torneio<input id="search-tour" placeholder="Nome/tipo" /></label>
+    <div class="filters">${['Todos', 'Torneio', 'Evento especial', 'Satélite'].map((f) => `<button class="pill" data-type="${f}">${f}</button>`).join('')}</div>
+    <div id="tour-list"></div>`;
 
-function updateTournamentList(list, term) {
-  const filtered = list.filter(t => (t.name + t.type).toLowerCase().includes(term));
-  $('#tour-list').innerHTML = filtered.map(t => `
-    <article class="card">
-      <div class="row"><h3>${t.name}</h3><span class="status ${statusClass(t.status)}">${t.status}</span></div>
+  const renderList = (term = '', type = 'Todos') => {
+    const filtered = state.tournaments.filter((t) => (type === 'Todos' || t.type === type) && `${t.name} ${t.type}`.toLowerCase().includes(term.toLowerCase()));
+    $('#tour-list').innerHTML = filtered.map((t) => `
+      <article class="card"><div class="row"><h3>${t.name}</h3><span class="status ${statusClass(t.status)}">${t.status}</span></div>
       <p class="muted">${t.date} • ${t.time}</p>
-      <small>Buy-in: ${t.buyIn} • Premiação: ${t.prize || 'A definir'}</small>
-      <small>Vagas: ${Math.max(t.slots - t.taken, 0)} • Estrutura: ${t.structure || 'Padrão Club Elite'}</small>
-      <div class="row" style="margin-top:8px;">
-        <button class="btn btn-secondary" data-open-tid="${t.id}">Detalhes</button>
-        <button class="btn btn-primary" data-register="${t.id}">Inscrever</button>
-      </div>
-    </article>
-  `).join('') || '<p class="muted">Sem resultados.</p>';
+      <small>Buy-in: R$ ${t.buyIn} • Premiação: R$ ${t.prize || 0} • Vagas: ${Math.max(t.slots - t.taken, 0)}</small>
+      <p>${t.structure || '-'}</p>
+      <div class="row"><button class="btn btn-secondary" data-detail="${t.id}">Detalhes</button><button class="btn btn-primary" data-register="${t.id}">Inscrever</button></div></article>`).join('') || '<p class="muted">Nenhum torneio.</p>';
 
-  $$('[data-register]').forEach(btn => btn.onclick = () => openRegisterModal(Number(btn.dataset.register)));
-  $$('[data-open-tid]').forEach(btn => btn.onclick = () => { state.selectedTournamentId = Number(btn.dataset.openTid); openView('tournament-detail'); });
+    $$('[data-register]').forEach((b) => (b.onclick = () => openRegisterModal(b.dataset.register)));
+    $$('[data-detail]').forEach((b) => (b.onclick = () => {
+      const t = state.tournaments.find((x) => x.id === b.dataset.detail);
+      showToast(`${t.name} • ${t.date} ${t.time}`);
+    }));
+  };
+
+  renderList();
+  $('#search-tour').oninput = (e) => renderList(e.target.value, $('.pill.active')?.dataset.type || 'Todos');
+  $$('.pill').forEach((p) => (p.onclick = () => {
+    $$('.pill').forEach((x) => x.classList.remove('active'));
+    p.classList.add('active');
+    renderList($('#search-tour').value, p.dataset.type);
+  }));
+  $('.pill')?.classList.add('active');
 }
 
-function renderTournamentDetail() {
-  const t = mock.events.find(e => e.id === state.selectedTournamentId) || mock.events[1];
-  $('[data-view="tournament-detail"]').innerHTML = `
-    <article class="card">
-      <h3>${t.name}</h3>
-      <p class="muted">${t.date} às ${t.time} • ${t.type}</p>
-      <p>Buy-in: <b>${t.buyIn}</b> | Premiação estimada: <b>${t.prize || 'A definir'}</b></p>
-      <p>Estrutura: ${t.structure || 'Stack padrão e blinds progressivos.'}</p>
-      <p>Vagas disponíveis: ${Math.max(t.slots - t.taken, 0)} de ${t.slots}</p>
-      <div class="row">
-        <button class="btn btn-primary" data-register="${t.id}">Confirmar inscrição</button>
-        <button class="btn btn-secondary" data-waitlist="${t.id}">Entrar na waitlist</button>
-      </div>
-    </article>
-  `;
-  $('[data-register]')?.addEventListener('click', () => openRegisterModal(t.id));
-  $('[data-waitlist]')?.addEventListener('click', () => addWaitlist(t.id));
-}
-
-function openRegisterModal(eventId) {
-  const e = mock.events.find(x => x.id === eventId);
-  $('#modal-text').textContent = `Confirmar inscrição em ${e.name} (${e.date} ${e.time})?`;
+function openRegisterModal(tournamentId) {
+  const tournament = state.tournaments.find((t) => t.id === tournamentId);
+  $('#modal-text').textContent = `Confirmar inscrição em ${tournament.name} (${tournament.date} ${tournament.time})?`;
   $('#confirm-modal').classList.remove('hidden');
-  $('#modal-confirm-btn').onclick = () => {
-    const regs = storageGet(STORAGE_KEYS.registrations, []);
-    if (!regs.some(r => r.eventId === eventId)) regs.push({ eventId, date: new Date().toISOString() });
-    storageSet(STORAGE_KEYS.registrations, regs);
-    $('#confirm-modal').classList.add('hidden');
-    showToast('Inscrição confirmada com sucesso.');
-    renderCurrentView();
+  $('#modal-confirm-btn').onclick = async () => {
+    try {
+      const result = await api('/registrations', {
+        method: 'POST',
+        body: JSON.stringify({ userId: state.user.id, tournamentId })
+      });
+      $('#confirm-modal').classList.add('hidden');
+      showToast('Inscrição confirmada! QR de check-in gerado.');
+      await fetchCoreData();
+      renderCurrentView();
+      openView('history');
+    } catch (err) {
+      showToast(err.message);
+    }
   };
 }
 
-function addWaitlist(eventId) {
-  const waitlist = storageGet(STORAGE_KEYS.waitlist, []);
-  const exists = waitlist.find(w => w.eventId === eventId && w.active);
-  if (exists) return showToast('Você já está na lista de espera deste evento.');
-  const position = waitlist.filter(w => w.eventId === eventId && w.active).length + 1;
-  waitlist.push({ eventId, position, eta: `${position * 15} min`, active: true, enteredAt: new Date().toISOString() });
-  storageSet(STORAGE_KEYS.waitlist, waitlist);
-  showToast(`Entrada na lista de espera confirmada. Posição #${position}.`);
-  openView('waitlist');
-}
-
-function renderWaitlist() {
-  const waitlist = storageGet(STORAGE_KEYS.waitlist, []);
-  const active = waitlist.filter(w => w.active);
-  const history = waitlist.filter(w => !w.active);
-  $('[data-view="waitlist"]').innerHTML = `
-    <h3>Fila Atual</h3>
-    <div class="list">${active.map(w => {
-      const event = mock.events.find(e => e.id === w.eventId);
-      return `<article class="card"><div class="row"><b>${event.name}</b><span class="status last">#${w.position}</span></div><small>Tempo estimado: ${w.eta}</small></article>`;
-    }).join('') || '<p class="muted">Você não está em nenhuma fila.</p>'}</div>
-    <h3>Histórico</h3>
-    <div class="list">${history.map(w => `<article class="card"><small>Evento #${w.eventId} • encerrada</small></article>`).join('') || '<p class="muted">Sem histórico anterior.</p>'}</div>
-  `;
-}
-
-function renderProfile() {
-  const user = getUser();
-  const regs = storageGet(STORAGE_KEYS.registrations, []);
-  $('[data-view="profile"]').innerHTML = `
-    <article class="card">
-      <div class="row"><div class="avatar">${user.avatar}</div><button class="btn btn-secondary" id="edit-profile">Editar perfil</button></div>
-      <h3>${user.name}</h3>
-      <p class="muted">${user.nickname}</p>
-      <small>${user.email} • ${user.phone}</small>
-      <p>Status de participação: <b>Ativo Premium</b></p>
-      <p>Preferências: ${user.preferences.join(', ')}</p>
-      <button class="btn btn-secondary" id="logout-btn">Sair da conta</button>
-    </article>
-    <article class="card"><h3>Histórico de inscrições</h3><p>${regs.length} inscrição(ões) realizadas.</p></article>
-    <div class="quick-grid">
-      <button class="quick-btn" data-quick="history">Histórico completo</button>
-      <button class="quick-btn" data-quick="promotions">Benefícios VIP</button>
-      <button class="quick-btn" data-quick="club">Informações Clube</button>
-      <button class="quick-btn" data-quick="waitlist">Minha Waitlist</button>
-    </div>
-  `;
-  $('#logout-btn').onclick = () => { localStorage.removeItem(STORAGE_KEYS.user); location.reload(); };
-  $('#edit-profile').onclick = () => showToast('Editor de perfil preparado para integração com backend.');
-  $$('[data-quick]').forEach(btn => btn.onclick = () => openView(btn.dataset.quick));
-}
-
 function renderRanking() {
-  $('[data-view="ranking"]').innerHTML = `
-    <div class="segmented">${['Semanal','Mensal','Geral'].map(f => `<button class="pill ${state.leaderboardFilter === f ? 'active' : ''}" data-rank-filter="${f}">${f}</button>`).join('')}</div>
-    ${mock.leaderboard.map((p, i) => `<article class="card"><div class="row"><b>#${i+1} ${p.name}</b>${i < 3 ? '<span>👑</span>' : ''}</div><small>Pontos: ${p.points} • Vitórias: ${p.wins} • Frequência: ${p.freq}</small></article>`).join('')}
-  `;
-  $$('[data-rank-filter]').forEach(btn => btn.onclick = () => { state.leaderboardFilter = btn.dataset.rankFilter; renderRanking(); showToast(`Filtro ${state.leaderboardFilter.toLowerCase()} aplicado.`); });
+  $('[data-view="ranking"]').innerHTML = leaderboard.map((p, i) => `<article class="card"><div class="row"><b>#${i + 1} ${p.name}</b>${i < 3 ? '👑' : ''}</div><small>Pontos ${p.points} • Vitórias ${p.wins} • Frequência ${p.freq}</small></article>`).join('');
 }
 
 function renderNotifications() {
-  const read = storageGet(STORAGE_KEYS.notificationsRead, []);
-  $('[data-view="notifications"]').innerHTML = mock.notifications.map(n => `
-    <article class="card">
-      <div class="row"><b>${n.type.toUpperCase()}</b>${read.includes(n.id) ? '<small class="muted">Lida</small>' : '<span class="status available">Nova</span>'}</div>
-      <p>${n.text}</p>
-      <small class="muted">${n.time}</small>
-    </article>
-  `).join('');
-  storageSet(STORAGE_KEYS.notificationsRead, mock.notifications.map(n => n.id));
-  $('#notification-badge').textContent = '0';
+  const read = JSON.parse(localStorage.getItem(STORAGE.notificationsRead) || '[]');
+  $('[data-view="notifications"]').innerHTML = state.notifications.map((n) => `<article class="card"><div class="row"><b>${n.type}</b>${read.includes(n.id) ? '<small class="muted">Lida</small>' : '<span class="status available">Nova</span>'}</div><p>${n.text}</p></article>`).join('');
+  localStorage.setItem(STORAGE.notificationsRead, JSON.stringify(state.notifications.map((n) => n.id)));
+  $('#notification-badge').textContent = 0;
+}
+
+async function renderHistory() {
+  const data = await api(`/checkins/user/${state.user.id}`);
+  $('[data-view="history"]').innerHTML = `
+    <article class="card"><h3>Meus check-ins e inscrições</h3><p class="muted">Acompanhe QR, status de entrada e histórico.</p></article>
+    ${data.map((item) => `
+      <article class="card">
+        <h4>${item.tournament?.name || 'Evento'}</h4>
+        <p class="muted">${item.tournament?.date || '-'} • ${item.tournament?.time || '-'}</p>
+        <div class="row"><span class="status ${item.checkin?.checkedInAt ? 'available' : 'last'}">${item.checkin?.checkedInAt ? 'check-in realizado' : 'pendente'}</span><small>${item.checkin?.checkedInAt ? new Date(item.checkin.checkedInAt).toLocaleString('pt-BR') : '-'}</small></div>
+        ${item.checkin?.qrCodeDataUrl ? `<img class="qr-img" src="${item.checkin.qrCodeDataUrl}" alt="QR checkin" />` : ''}
+        <small>Token: ${item.checkin?.token || '-'}</small>
+      </article>
+    `).join('') || '<p class="muted">Sem histórico ainda.</p>'}
+    ${state.user.role === 'admin' ? '<button class="btn btn-primary" id="open-scanner">Abrir scanner QR</button>' : ''}
+  `;
+  $('#open-scanner') && ($('#open-scanner').onclick = () => openView('scanner'));
+}
+
+function renderProfile() {
+  $('[data-view="profile"]').innerHTML = `
+    <article class="card"><div class="row"><div class="avatar">${state.user.name.split(' ').map((x) => x[0]).slice(0, 2).join('')}</div><button class="btn btn-secondary" id="logout-btn">Sair</button></div>
+      <h3>${state.user.name}</h3><p class="muted">${state.user.nickname || 'Membro'}</p><small>${state.user.email} • ${state.user.phone}</small>
+      <p>Status: <b>${state.user.role === 'admin' ? 'Administrador' : 'Jogador ativo'}</b></p>
+      <div class="quick-grid"><button class="quick-btn" data-go="history">Meus check-ins</button><button class="quick-btn" data-go="club">Info Clube</button>${state.user.role === 'admin' ? '<button class="quick-btn" data-go="admin">Painel Admin</button>' : ''}</div></article>`;
+  $('#logout-btn').onclick = () => { localStorage.removeItem(STORAGE.user); location.href = '/'; };
+  $$('[data-go]').forEach((b) => (b.onclick = () => openView(b.dataset.go)));
 }
 
 function renderClub() {
   $('[data-view="club"]').innerHTML = `
-    <article class="card"><h3>Sobre o Club Elite</h3><p>Clube de poker premium com ambiente sofisticado, estrutura profissional e eventos exclusivos.</p></article>
-    <article class="card"><h3>Localização</h3><p>Av. Paulista, 1000 - São Paulo/SP</p><div class="card" style="margin:0;background:#0d0d0d">Mapa (placeholder pronto para API)</div></article>
-    <article class="card"><h3>Horários</h3><p>Seg-Qua 18h-02h | Qui-Sáb 18h-04h | Dom 16h-01h</p><p>Dress code: esporte fino recomendado.</p></article>
-    <article class="card faq"><h3>FAQ</h3>
-      <details><summary>Como funciona o buy-in?</summary><p>O buy-in varia por evento e é informado na agenda.</p></details>
-      <details><summary>Posso levar acompanhante?</summary><p>Sim, sujeito a disponibilidade e cadastro na portaria.</p></details>
-      <details><summary>Quais formas de pagamento?</summary><p>PIX, cartão de débito e crédito.</p></details>
+    <article class="card"><h3>Sobre o Clube</h3><p>Clube premium com eventos exclusivos de poker, cash games e experiência VIP.</p></article>
+    <article class="card"><h3>Localização</h3><p>Av. Paulista, 1000 • São Paulo/SP</p><small>Mapa pronto para integração com API.</small></article>
+    <article class="card"><h3>Regras da Casa</h3><p>Respeito entre jogadores, fichas oficiais e check-in obrigatório via QR na chegada.</p></article>`;
+}
+
+function renderAdmin() {
+  if (state.user.role !== 'admin') {
+    $('[data-view="admin"]').innerHTML = '<article class="card"><p class="muted">Acesso restrito.</p></article>';
+    return;
+  }
+
+  $('[data-view="admin"]').innerHTML = `
+    <article class="card"><h3>Cadastrar torneio</h3>
+      <form id="admin-t-form" class="grid-2">
+        <label>Nome<input name="name" required /></label><label>Data<input type="date" name="date" required /></label>
+        <label>Hora<input type="time" name="time" required /></label><label>Tipo<select name="type"><option>Torneio</option><option>Evento especial</option><option>Satélite</option></select></label>
+        <label>Buy-in<input type="number" name="buyIn" required /></label><label>Premiação<input type="number" name="prize" /></label>
+        <label>Vagas<input type="number" name="slots" required /></label><label>Blinds<input name="blinds" /></label>
+        <label style="grid-column:1/-1;">Estrutura<textarea name="structure"></textarea></label>
+        <button class="btn btn-primary" style="grid-column:1/-1;" type="submit">Salvar torneio</button>
+      </form>
     </article>
-  `;
-}
+    <article class="card"><h3>Operação de check-in</h3><button class="btn btn-secondary" id="go-scanner">Abrir scanner QR</button></article>`;
 
-function renderPromotions() {
-  $('[data-view="promotions"]').innerHTML = mock.promotions.map(p => `<article class="card"><h3>${p.title}</h3><p>${p.desc}</p></article>`).join('');
-}
-
-function renderHistory() {
-  const regs = storageGet(STORAGE_KEYS.registrations, []);
-  const waitlist = storageGet(STORAGE_KEYS.waitlist, []);
-  $('[data-view="history"]').innerHTML = `
-    <label>Filtro por tipo<select id="history-filter"><option value="all">Todos</option><option value="registration">Inscrições</option><option value="waitlist">Lista de espera</option></select></label>
-    <div id="history-list"></div>
-  `;
-  const render = (type) => {
-    const regHtml = regs.map(r => `<article class="card"><b>Inscrição:</b> ${mock.events.find(e => e.id === r.eventId)?.name || 'Evento'}<br><small>${new Date(r.date).toLocaleString('pt-BR')}</small></article>`);
-    const waitHtml = waitlist.map(w => `<article class="card"><b>Waitlist:</b> Evento #${w.eventId} • Posição ${w.position}<br><small>${new Date(w.enteredAt).toLocaleString('pt-BR')}</small></article>`);
-    $('#history-list').innerHTML = (type === 'registration' ? regHtml : type === 'waitlist' ? waitHtml : [...regHtml, ...waitHtml]).join('') || '<p class="muted">Sem registros.</p>';
+  $('#go-scanner').onclick = () => openView('scanner');
+  $('#admin-t-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const payload = Object.fromEntries(fd.entries());
+    try {
+      await api('/tournaments', { method: 'POST', body: JSON.stringify(payload) });
+      showToast('Torneio cadastrado com sucesso.');
+      e.target.reset();
+      await fetchCoreData();
+    } catch (err) {
+      showToast(err.message);
+    }
   };
-  render('all');
-  $('#history-filter').onchange = (e) => render(e.target.value);
 }
 
-function skeletons(n) { return Array.from({ length: n }, () => '<div class="skeleton"></div>').join(''); }
+function extractTokenFromContent(content) {
+  try {
+    const url = new URL(content);
+    if (url.pathname.startsWith('/checkin/')) return url.pathname.split('/').pop();
+  } catch (_) {}
+  return content.trim();
+}
 
-function attachEvents() {
-  document.body.addEventListener('click', (e) => {
-    if (e.target.matches('[data-action="go-auth"]')) {
-      $('#splash-screen').classList.add('hidden');
-      $('#auth-screen').classList.remove('hidden');
-    }
-    if (e.target.matches('[data-action="open-notifications"]') || e.target.closest('[data-action="open-notifications"]')) openView('notifications');
-    if (e.target.matches('[data-action="close-modal"]')) $('#confirm-modal').classList.add('hidden');
-    if (e.target.matches('.nav-btn') || e.target.closest('.nav-btn')) {
-      const btn = e.target.closest('.nav-btn');
-      openView(btn.dataset.nav);
-    }
-    if (e.target.matches('.tab-btn')) {
-      state.authTab = e.target.dataset.authTab;
-      $$('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.authTab === state.authTab));
-      $('#login-form').classList.toggle('hidden', state.authTab !== 'login');
-      $('#signup-form').classList.toggle('hidden', state.authTab !== 'signup');
-    }
-  });
+async function handleScanToken(token) {
+  if (!token) return;
+  try {
+    const data = await api('/checkins/scan', { method: 'POST', body: JSON.stringify({ token }) });
+    $('#scan-result').innerHTML = `<article class="card"><h3>Check-in confirmado ✅</h3><p><b>${data.user.name}</b> (${data.user.nickname})</p><p>${data.user.email} • ${data.user.phone}</p><p>Torneio: <b>${data.tournament.name}</b></p><small>Entrada registrada: ${new Date(data.checkin.checkedInAt).toLocaleString('pt-BR')}</small></article>`;
+    showToast('Jogador identificado e check-in efetuado.');
+  } catch (err) {
+    showToast(err.message);
+  }
+}
 
-  $('#login-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = e.target.email.value.trim();
-    const password = e.target.password.value.trim();
-    if (!email || password.length < 6) return showToast('Preencha os campos corretamente.');
-    storageSet(STORAGE_KEYS.user, getUser());
-    enterApp();
-  });
+async function startScanner() {
+  const container = $('[data-view="scanner"]');
+  container.innerHTML = `
+    <article class="card"><h3>Scanner de QR (Portaria)</h3><p class="muted">Escaneie o QR do jogador para visualizar dados e confirmar presença.</p>
+      <video id="scan-video" autoplay playsinline></video>
+      <label>Fallback manual (token/URL)<input id="manual-token" placeholder="Cole token ou URL /checkin/..." /></label>
+      <div class="row"><button class="btn btn-secondary" id="scan-manual">Validar token</button><button class="btn btn-primary" id="stop-scanner">Parar câmera</button></div>
+    </article>
+    <div id="scan-result"></div>`;
 
-  $('#signup-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const form = new FormData(e.target);
-    const user = { name: form.get('name'), email: form.get('email'), phone: form.get('phone'), nickname: 'Novo Membro', avatar: String(form.get('name')).split(' ').map(v => v[0]).slice(0,2).join('').toUpperCase(), preferences: ['Texas Hold\'em'] };
-    storageSet(STORAGE_KEYS.user, user);
-    showToast('Conta criada com sucesso!');
-    enterApp();
-  });
+  $('#scan-manual').onclick = () => handleScanToken(extractTokenFromContent($('#manual-token').value));
+  $('#stop-scanner').onclick = stopScanner;
+
+  if (!('BarcodeDetector' in window) || !(await BarcodeDetector.getSupportedFormats()).includes('qr_code')) {
+    showToast('Scanner nativo indisponível neste dispositivo. Use fallback manual.');
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    state.scanStream = stream;
+    const video = $('#scan-video');
+    video.srcObject = stream;
+    const detector = new BarcodeDetector({ formats: ['qr_code'] });
+
+    const tick = async () => {
+      if (!state.scanStream || state.view !== 'scanner') return;
+      try {
+        const codes = await detector.detect(video);
+        if (codes[0]?.rawValue) {
+          await handleScanToken(extractTokenFromContent(codes[0].rawValue));
+          stopScanner();
+          return;
+        }
+      } catch (_) {}
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  } catch (_) {
+    showToast('Sem permissão de câmera. Use fallback manual.');
+  }
+}
+
+function stopScanner() {
+  if (state.scanStream) state.scanStream.getTracks().forEach((t) => t.stop());
+  state.scanStream = null;
+}
+
+async function renderCurrentView() {
+  if (state.view === 'home') renderHome();
+  else if (state.view === 'agenda') renderAgenda();
+  else if (state.view === 'tournaments') renderTournaments();
+  else if (state.view === 'ranking') renderRanking();
+  else if (state.view === 'profile') renderProfile();
+  else if (state.view === 'notifications') renderNotifications();
+  else if (state.view === 'club') renderClub();
+  else if (state.view === 'admin') renderAdmin();
+  else if (state.view === 'history') await renderHistory();
+  else if (state.view === 'scanner') startScanner();
+  $('#notification-badge').textContent = unreadCount();
 }
 
 function enterApp() {
-  $('#auth-screen').classList.add('hidden');
   $('#splash-screen').classList.add('hidden');
+  $('#auth-screen').classList.add('hidden');
   $('#top-bar').classList.remove('hidden');
   $('#main-app').classList.remove('hidden');
   $('#bottom-nav').classList.remove('hidden');
   openView('home');
 }
 
-function boot() {
-  initData();
-  attachEvents();
+function bindEvents() {
+  document.body.addEventListener('click', (e) => {
+    if (e.target.matches('[data-action="go-auth"]')) {
+      $('#splash-screen').classList.add('hidden');
+      $('#auth-screen').classList.remove('hidden');
+    }
+    if (e.target.matches('.tab-btn')) {
+      state.authTab = e.target.dataset.authTab;
+      $$('.tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.authTab === state.authTab));
+      $('#login-form').classList.toggle('hidden', state.authTab !== 'login');
+      $('#signup-form').classList.toggle('hidden', state.authTab !== 'signup');
+    }
+    if (e.target.matches('.nav-btn') || e.target.closest('.nav-btn')) {
+      stopScanner();
+      openView(e.target.closest('.nav-btn').dataset.nav);
+    }
+    if (e.target.matches('[data-action="open-notifications"]') || e.target.closest('[data-action="open-notifications"]')) openView('notifications');
+    if (e.target.matches('[data-action="close-modal"]')) $('#confirm-modal').classList.add('hidden');
+  });
+
+  $('#login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const body = JSON.stringify({ email: e.target.email.value, password: e.target.password.value });
+      const data = await api('/auth/login', { method: 'POST', body });
+      state.user = data.user;
+      saveUser(data.user);
+      await fetchCoreData();
+      enterApp();
+    } catch (err) {
+      showToast(err.message);
+    }
+  });
+
+  $('#signup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    try {
+      const body = JSON.stringify({ name: e.target.name.value, email: e.target.email.value, phone: e.target.phone.value, password: e.target.password.value });
+      const data = await api('/auth/signup', { method: 'POST', body });
+      state.user = data.user;
+      saveUser(data.user);
+      await fetchCoreData();
+      showToast('Cadastro realizado com sucesso.');
+      enterApp();
+    } catch (err) {
+      showToast(err.message);
+    }
+  });
+}
+
+async function handleCheckinRoute() {
+  const token = location.pathname.startsWith('/checkin/') ? location.pathname.split('/').pop() : null;
+  if (!token) return false;
+
+  $('#splash-screen').classList.add('hidden');
+  $('#auth-screen').classList.add('hidden');
+  $('#top-bar').classList.add('hidden');
+  $('#main-app').classList.remove('hidden');
+  $('#bottom-nav').classList.add('hidden');
+
+  const container = $('[data-view="home"]')
+  container.classList.add('active');
+  try {
+    const data = await api('/checkins/scan', { method: 'POST', body: JSON.stringify({ token }) });
+    container.innerHTML = `<article class="card"><h3>Check-in confirmado ✅</h3><p><b>${data.user.name}</b> (${data.user.nickname})</p><p>${data.user.email}</p><p>Torneio: ${data.tournament.name}</p><small>${new Date(data.checkin.checkedInAt).toLocaleString('pt-BR')}</small></article>`;
+  } catch (err) {
+    container.innerHTML = `<article class="card"><h3>QR inválido</h3><p>${err.message}</p></article>`;
+  }
+  return true;
+}
+
+async function boot() {
+  bindEvents();
   $('#loading-screen').classList.remove('hidden');
-  setTimeout(() => {
-    $('#loading-screen').classList.add('hidden');
-    if (isLogged()) enterApp();
-  }, 700);
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  try {
+    await api('/health');
+  } catch (err) {
+    showToast('Backend indisponível. Inicie o servidor: npm start');
+  }
+
+  const checkinPage = await handleCheckinRoute();
+  if (!checkinPage) {
+    state.user = getUser();
+    if (state.user) {
+      await fetchCoreData();
+      enterApp();
+    }
+  }
+
+  $('#loading-screen').classList.add('hidden');
 }
 
 boot();
