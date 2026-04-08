@@ -1,0 +1,32 @@
+[
+  {
+    "id": "reg_3fc2efae475b",
+    "userId": "usr_04e69b48ccc6",
+    "eventId": "trn_00cd288058af",
+    "status": "confirmed",
+    "checkinStatus": "pending",
+    "qrToken": "eyJ1c2VySWQiOiJ1c3JfMDRlNjliNDhjY2M2IiwiZXZlbnRJZCI6InRybl8wMGNkMjg4MDU4YWYiLCJyZWdpc3RyYXRpb25JZCI6InJlZ18zZmMyZWZhZTQ3NWIiLCJ0cyI6IjIwMjYtMDQtMDZUMjE6MzY6NTMuOTgxWiIsInNpZyI6IjA1MDMyNWQ1M2QzMzU5ZThkNjczZmUyODliMjI4MTcyNTk5Yjc2YmZlMTUwODVmZjg1ODQwZGNlOWE0MWM1M2QifQ",
+    "createdAt": "2026-04-06T21:36:53.981Z",
+    "updatedAt": "2026-04-06T21:36:53.981Z"
+  },
+  {
+    "id": "reg_24e1914246c4",
+    "userId": "usr_50f7ca425f52",
+    "eventId": "trn_00cd288058af",
+    "status": "confirmed",
+    "checkinStatus": "pending",
+    "qrToken": "eyJ1c2VySWQiOiJ1c3JfNTBmN2NhNDI1ZjUyIiwiZXZlbnRJZCI6InRybl8wMGNkMjg4MDU4YWYiLCJyZWdpc3RyYXRpb25JZCI6InJlZ18yNGUxOTE0MjQ2YzQiLCJ0cyI6IjIwMjYtMDQtMDZUMjE6MzY6NTMuOTgyWiIsInNpZyI6IjhkN2UwYjNhYmRkNGQ5MzJkMmRiOWZmYWFkYjM3ODI2NmU3MmQ1Yzc5Mzg4MmQ1YmU2OWY2ZmIwYjJhNDFmNzMifQ",
+    "createdAt": "2026-04-06T21:36:53.982Z",
+    "updatedAt": "2026-04-06T21:36:53.982Z"
+  },
+  {
+    "id": "reg_413de769493f",
+    "userId": "usr_7021432bddde",
+    "eventId": "evt_cb5260535788",
+    "status": "waitlist",
+    "checkinStatus": "pending",
+    "qrToken": "eyJ1c2VySWQiOiJ1c3JfNzAyMTQzMmJkZGRlIiwiZXZlbnRJZCI6ImV2dF9jYjUyNjA1MzU3ODgiLCJyZWdpc3RyYXRpb25JZCI6InJlZ180MTNkZTc2OTQ5M2YiLCJ0cyI6IjIwMjYtMDQtMDZUMjE6MzY6NTMuOTgyWiIsInNpZyI6IjRiNzY2MTlkNjI0MDE5YzcxNzk4NDQzNDY5NjVkOGRjMDI5NDVkZDQwOWZmNzM4NzkyNDc4MmExMWRlYzA4ZjMifQ",
+    "createdAt": "2026-04-06T21:36:53.982Z",
+    "updatedAt": "2026-04-06T21:36:53.982Z"
+  }
+]

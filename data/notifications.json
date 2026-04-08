@@ -1,0 +1,18 @@
+[
+  {
+    "id": "ntf_729b6d1779ca",
+    "userId": "usr_04e69b48ccc6",
+    "title": "Bem-vindo ao Elite Tournament Club",
+    "message": "Sua conta está pronta para inscrições e check-ins.",
+    "read": false,
+    "createdAt": "2026-04-06T21:36:53.961Z"
+  },
+  {
+    "id": "ntf_a413862c1d90",
+    "userId": "usr_7021432bddde",
+    "title": "Você está na fila de espera",
+    "message": "Evento Satellite Sunday lotado. Posição atual: 1",
+    "read": false,
+    "createdAt": "2026-04-06T21:36:53.961Z"
+  }
+]
