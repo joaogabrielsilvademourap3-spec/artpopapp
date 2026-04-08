@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0e0e12" />
+  <title>Elite Tournament Club</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/assets/icon-192.svg" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="splash" class="splash">Elite Tournament Club</div>
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <h1>Elite Club</h1>
+      <button id="logoutBtn" class="ghost">Sair</button>
+    </header>
+
+    <main id="view"></main>
+
+    <nav id="bottomNav" class="bottom-nav hidden">
+      <button data-route="home">Home</button>
+      <button data-route="events">Eventos</button>
+      <button data-route="registrations">Inscrições</button>
+      <button data-route="checkins">Check-ins</button>
+      <button data-route="profile">Perfil</button>
+    </nav>
+  </div>
+
+  <div id="auth" class="auth hidden">
+    <div class="auth-card">
+      <h2 id="authTitle">Entrar</h2>
+      <form id="loginForm">
+        <label>E-mail <input name="email" type="email" required /></label>
+        <label>Senha <input name="password" type="password" required /></label>
+        <button type="submit">Entrar</button>
+      </form>
+      <form id="registerForm" class="hidden">
+        <label>Nome <input name="name" required /></label>
+        <label>E-mail <input name="email" type="email" required /></label>
+        <label>Telefone <input name="phone" required /></label>
+        <label>Apelido <input name="nickname" /></label>
+        <label>Senha <input name="password" type="password" required /></label>
+        <button type="submit">Criar conta</button>
+      </form>
+      <form id="recoverForm" class="hidden">
+        <label>E-mail <input name="email" type="email" required /></label>
+        <label>Nova senha <input name="newPassword" type="password" required /></label>
+        <button type="submit">Atualizar senha</button>
+      </form>
+      <div class="row">
+        <button id="switchLogin" class="ghost">Login</button>
+        <button id="switchRegister" class="ghost">Cadastro</button>
+        <button id="switchRecover" class="ghost">Recuperar</button>
+      </div>
+      <p class="hint">Admin demo: admin@eliteclub.local / admin123</p>
+      <p class="hint">Jogador demo: lucas@eliteclub.local / player123</p>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script src="/lib/qr.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

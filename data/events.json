@@ -1,0 +1,42 @@
+[
+  {
+    "id": "evt_cb5260535788",
+    "name": "Satellite Sunday",
+    "description": "Classificatório com vaga para Main Event.",
+    "type": "satélite",
+    "date": "2026-04-13",
+    "time": "18:00",
+    "location": "Salão Black",
+    "buyIn": 120,
+    "estimatedPrize": 12000,
+    "totalSlots": 20,
+    "remainingSlots": 0,
+    "status": "lotado",
+    "rules": "Top 3 garantem vaga. Sem add-on.",
+    "checkinEnabled": true,
+    "checkinStart": "2026-04-13T03:36:53.978Z",
+    "checkinEnd": "2026-04-13T19:36:53.978Z",
+    "category": "event",
+    "createdAt": "2026-04-06T21:36:53.961Z"
+  },
+  {
+    "id": "evt_5ce8ed610909",
+    "name": "Cash Game Night",
+    "description": "Mesa de cash game com blind flexível.",
+    "type": "cash game",
+    "date": "2026-04-07",
+    "time": "21:00",
+    "location": "Lounge Diamond",
+    "buyIn": 200,
+    "estimatedPrize": 0,
+    "totalSlots": 12,
+    "remainingSlots": 6,
+    "status": "ativo",
+    "rules": "Stack inicial de 200BB.",
+    "checkinEnabled": true,
+    "checkinStart": "2026-04-07T09:36:53.978Z",
+    "checkinEnd": "2026-04-08T01:36:53.978Z",
+    "category": "event",
+    "createdAt": "2026-04-06T21:36:53.961Z"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": "usr_1318e5496084",
+    "name": "Administrador Elite",
+    "email": "admin@eliteclub.local",
+    "phone": "11990000000",
+    "nickname": "Boss",
+    "role": "admin",
+    "passwordHash": "71d21ce5584234a2e2387dd3b2e6756afbbd4161ffbb2e39fee776ef3b014ba7",
+    "createdAt": "2026-04-06T21:36:53.961Z"
+  },
+  {
+    "id": "usr_04e69b48ccc6",
+    "name": "Lucas Almeida",
+    "email": "lucas@eliteclub.local",
+    "phone": "11981112222",
+    "nickname": "Lukinha",
+    "role": "player",
+    "passwordHash": "b8cf51e37455f78eb2a01f8708c35d02ed3787a318d2176f84329bbb655331d7",
+    "createdAt": "2026-04-06T21:36:53.961Z"
+  },
+  {
+    "id": "usr_50f7ca425f52",
+    "name": "Marina Costa",
+    "email": "marina@eliteclub.local",
+    "phone": "11983334444",
+    "nickname": "M.Costa",
+    "role": "player",
+    "passwordHash": "b8cf51e37455f78eb2a01f8708c35d02ed3787a318d2176f84329bbb655331d7",
+    "createdAt": "2026-04-06T21:36:53.961Z"
+  },
+  {
+    "id": "usr_7021432bddde",
+    "name": "Rafael Nunes",
+    "email": "rafael@eliteclub.local",
+    "phone": "11985556666",
+    "nickname": "RafaN",
+    "role": "player",
+    "passwordHash": "b8cf51e37455f78eb2a01f8708c35d02ed3787a318d2176f84329bbb655331d7",
+    "createdAt": "2026-04-06T21:36:53.961Z"
+  }
+]
